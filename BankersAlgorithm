@@ -1,0 +1,128 @@
+import java.util.Scanner;
+
+public class BankersAlgorithm {
+
+    private int numProcesses;
+    private int numResources;
+    private int[][] maximum;
+    private int[][] allocation;
+    private int[][] need;
+    private int[] available;
+
+    public BankersAlgorithm(int numProcesses, int numResources) {
+        this.numProcesses = numProcesses;
+        this.numResources = numResources;
+        this.maximum = new int[numProcesses][numResources];
+        this.allocation = new int[numProcesses][numResources];
+        this.need = new int[numProcesses][numResources];
+        this.available = new int[numResources];
+    }
+
+    public void input() {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter Allocation Matrix:");
+        for (int i = 0; i < numProcesses; i++) {
+            for (int j = 0; j < numResources; j++) {
+                allocation[i][j] = scanner.nextInt();
+            }
+        }
+
+        System.out.println("Enter Maximum Matrix:");
+        for (int i = 0; i < numProcesses; i++) {
+            for (int j = 0; j < numResources; j++) {
+                maximum[i][j] = scanner.nextInt();
+            }
+        }
+
+        System.out.println("Enter Available Resources:");
+        for (int i = 0; i < numResources; i++) {
+            available[i] = scanner.nextInt();
+        }
+
+        // Calculate Need Matrix
+        for (int i = 0; i < numProcesses; i++) {
+            for (int j = 0; j < numResources; j++) {
+                need[i][j] = maximum[i][j] - allocation[i][j];
+            }
+        }
+    }
+
+    public boolean isSafe() {
+        int[] work = new int[numResources];
+        boolean[] finish = new boolean[numProcesses];
+        int[] safeSequence = new int[numProcesses];
+        int count = 0;
+
+        System.arraycopy(available, 0, work, 0, numResources);
+
+        System.out.println("\nWork\t\tNeed\t\tAllocation\tAvailable\tFinish");
+
+        while (count < numProcesses) {
+            boolean found = false;
+            for (int p = 0; p < numProcesses; p++) {
+                if (!finish[p]) {
+                    int j;
+                    for (j = 0; j < numResources; j++) {
+                        if (need[p][j] > work[j]) {
+                            break;
+                        }
+                    }
+                    if (j == numResources) {
+                        for (int k = 0; k < numResources; k++) {
+                            work[k] += allocation[p][k];
+                        }
+                        safeSequence[count++] = p;
+                        finish[p] = true;
+                        found = true;
+                        printStep(work, need[p], allocation[p], available, finish[p]);
+                    }
+                }
+            }
+            if (!found) {
+                System.out.println("System is not in a safe state. Deadlock detected.");
+                return false;
+            }
+        }
+
+        System.out.println("\nSystem is in a safe state. Safe sequence is:");
+        for (int i = 0; i < numProcesses; i++) {
+            System.out.print("P" + safeSequence[i] + " ");
+        }
+        System.out.println();
+        return true;
+    }
+
+    private void printStep(int[] work, int[] needRow, int[] allocationRow, int[] available, boolean finish) {
+        for (int j = 0; j < numResources; j++) {
+            System.out.print(work[j] + " ");
+        }
+        System.out.print("\t\t");
+        for (int j = 0; j < numResources; j++) {
+            System.out.print(needRow[j] + " ");
+        }
+        System.out.print("\t\t");
+        for (int j = 0; j < numResources; j++) {
+            System.out.print(allocationRow[j] + " ");
+        }
+        System.out.print("\t\t");
+        for (int j = 0; j < numResources; j++) {
+            System.out.print(available[j] + " ");
+        }
+        System.out.print("\t\t");
+        System.out.println(finish ? "true" : "false");
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter number of processes: ");
+        int numProcesses = scanner.nextInt();
+        System.out.println("Enter number of resources: ");
+        int numResources = scanner.nextInt();
+        
+        BankersAlgorithm bankersAlgorithm = new BankersAlgorithm(numProcesses, numResources);
+        bankersAlgorithm.input();
+        
+        bankersAlgorithm.isSafe();
+    }
+}
